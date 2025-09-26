@@ -7,7 +7,7 @@ for instance in $@
 do
     #We need to execute dynamically and store output in variable
     INSTANCE_ID=$(aws ec2 run-instances --image-id $AMI_ID --instance-type t3.micro
-    --security-group-ids sg-0e088f26edef8a840 --tag-specifications "ResourceType=instance,Tags=[{Key=Name,
+    --security-group-ids $SG_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,
     Value=$instance}]" --query 'Instances[0].InstanceId' --output text)
 
     # Get Private IP
