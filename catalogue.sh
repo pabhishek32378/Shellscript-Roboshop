@@ -37,9 +37,13 @@ VALIDATE $? "Enabling NodeJS 20"
 dnf install nodejs -y &>>$LOG_FILE
 VALIDATE $? "Installing NodeJS"
 
-
-useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>>$LOG_FILE
-VALIDATE $? "Creating system user"
+id roboshop &>>$LOG_FILE
+if [ $? -ne 0 ]; then
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>>$LOG_FILE
+    VALIDATE $? "Creating system user"
+else
+    echo -e "User already exist ... $Y SKIPPING $N"
+fi
 
 mkdir -p /app
 VALIDATE $? "Creating app directory"
@@ -50,20 +54,23 @@ VALIDATE $? "Downloading catalogue application"
 cd /app 
 VALIDATE $? "Changing to app directory"
 
+rm -rf /app/*
+VALIDATE $? "Removing existing code"
+
 unzip /tmp/catalogue.zip &>>$LOG_FILE
 VALIDATE $? "unzip catalogue"
 
 npm install &>>$LOG_FILE
 VALIDATE $? "Install dependencies"
 
-cp catalogue.service /etc/systemd/system/catalogue.service
+cp $SCRIPT_DIR/catalogue.service /etc/systemd/system/catalogue.service
 VALIDATE $? "Copy systemctl service"
 
 systemctl daemon-reload
 systemctl enable catalogue &>>$LOG_FILE
 VALIDATE $? "Enable catalogue"
 
-cp mongo.repo /etc/yum.repos.d/mongo.repo
+cp $SCRIPT_DIR/mongo.repo /etc/yum.repos.d/mongo.repo
 VALIDATE $? "Copy mongo repo"
 
 dnf install mongodb-mongosh -y &>>$LOG_FILE
